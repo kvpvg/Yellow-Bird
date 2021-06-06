@@ -76,39 +76,68 @@ function Progresso() {
   this.atualizarPontos(0);
 }
 
-function Passaro(larguraJogo) {
+function Passaro(larguraJogo, alturaJogo) {
   let voarDireita = false;
   let voarEsquerda = false;
+  let voarCima = false;
+  let voarBaixo = false;
 
   this.elemento = novoObjeto("img", "passaro");
   this.elemento.src = "imagens/bird.gif";
 
-  const descolamento = 10;
+  const deslocamentoDiagonal = 10;
+  const deslocamentoVertical = 5;
 
   this.getX = () => this.elemento.style.left.split("px")[0];
   this.setX = (x) => (this.elemento.style.left = `${x}px`);
+  this.getY = () => this.elemento.style.bottom.split("px")[0];
+  this.setY = (y) => (this.elemento.style.bottom = `${y}px`);
 
   window.onkeydown = (e) => {
-    if (e.key == "ArrowRight") {
-      voarDireita = true;
-    } else if (e.key == "ArrowLeft") {
+    if (e.key == "ArrowUp") {
+      voarCima = true;
+    }
+    if (e.key == "ArrowDown") {
+      voarBaixo = true;
+    }
+    if (e.key == "ArrowLeft") {
       voarEsquerda = true;
     }
-    window.onkeyup = (e) => {
-      voarDireita = false;
-      voarEsquerda = false;
-    };
+    if (e.key == "ArrowRight") {
+      voarDireita = true;
+    }
   };
+
+  window.onkeyup = () => {
+    voarDireita = false;
+    voarEsquerda = false;
+    voarCima = false;
+    voarBaixo = false;
+  };
+
   this.animar = () => {
     if (voarDireita == true) {
-      this.setX(parseInt(this.getX()) + descolamento);
+      this.setX(parseInt(this.getX()) + deslocamentoDiagonal);
     } else if (voarEsquerda == true) {
-      this.setX(this.getX() - descolamento);
+      this.setX(this.getX() - deslocamentoDiagonal);
+    } else if (voarCima == true) {
+      this.setY(parseInt(this.getY()) + deslocamentoVertical);
+    } else if (voarBaixo == true) {
+      this.setY(this.getY() - deslocamentoVertical);
     }
     const larguraMaxima = larguraJogo - this.elemento.clientWidth;
+    const alturaMaxima = alturaJogo - this.elemento.clientHeight;
 
     if (this.getX() <= 0) {
       this.setX(0);
+    }
+
+    if (this.getY() <= 0) {
+      this.setY(0);
+    }
+
+    if (this.getY() >= alturaMaxima) {
+      this.setY(0);
     }
 
     if (this.getX() >= larguraMaxima) {
@@ -140,39 +169,41 @@ function Colisao(passaro, conjuntoObstaculos) {
   return colidiu;
 }
 
-function buttaoRecomecar(){
-  this.elemento = novoObjeto('button','reiniciar')
-  this.elemento.innerHTML = 'Tentar Novamente'
+function buttaoRecomecar() {
+  this.elemento = novoObjeto("button", "reiniciar");
+  this.elemento.innerHTML = "Tentar Novamente";
 }
 
-function recomecar(butao){
-  butao.elemento.style.display = 'block';
-  butao.elemento.addEventListener("click",jogo1.reset)
+function recomecar(butao) {
+  butao.elemento.style.display = "block";
+  butao.elemento.addEventListener("click", jogo1.reset);
 }
 
 function jogo() {
-  let pontos = 0;   
+  let pontos = 0;
 
   const areaDoJogo = document.querySelector("[area-jogo]");
   const largura = areaDoJogo.clientWidth;
   const altura = areaDoJogo.clientHeight;
-  const passaro = new Passaro(largura);
-  const butao = new buttaoRecomecar
-  
+  const passaro = new Passaro(largura, altura);
+  passaro.setX(600);
+  passaro.setY(200);
+  const butao = new buttaoRecomecar();
+
   const progresso = new Progresso();
   const obstaculos = new conjuntoObstaculos(largura, altura, 100, 500, () =>
-  progresso.atualizarPontos(++pontos)
+    progresso.atualizarPontos(++pontos)
   );
 
   areaDoJogo.appendChild(progresso.elemento);
   areaDoJogo.appendChild(passaro.elemento);
   obstaculos.conjunto.forEach((conj) => areaDoJogo.appendChild(conj.elemento));
-  document.querySelector('body').appendChild(butao.elemento)
+  document.querySelector("body").appendChild(butao.elemento);
 
   this.reset = () => {
-    location.reload()
-  }
-  
+    location.reload();
+  };
+
   this.start = () => {
     const temporizador = setInterval(() => {
       obstaculos.animar();
@@ -180,7 +211,7 @@ function jogo() {
 
       if (Colisao(passaro, obstaculos)) {
         clearInterval(temporizador);
-        recomecar(butao)
+        recomecar(butao);
       }
     }, 20);
   };
